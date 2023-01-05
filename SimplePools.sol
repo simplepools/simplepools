@@ -15,7 +15,7 @@ contract SimplePools {
         // For example when we want to use a pool for limit sell then maxtxpercent can be 100%
         // so someone can buy all the bitcoin/eth for sell with one transaction.
         // For new tokens that are only traded in one pool it can be 1% or 10% or 50%.
-        uint maxPercentPerTransaction;
+        uint maxBuyToken1PercentPerTransaction;
         uint constantProduct; // (T1*(T2+VT2))=ConstantProduct
         bool constantPrice;
         uint initialToken1Amount;
@@ -38,7 +38,7 @@ contract SimplePools {
 
     function createPool(IERC20 token1, IERC20 token2,
             uint token1Amount, uint matchingPriceInToken2,
-            uint maxPercentPerTransaction, bool constantPrice) external {
+            uint maxBuyToken1PercentPerTransaction, bool constantPrice) external {
         // matchingPriceInToken2 is the requested initial amount for token2 that match token1
         uint poolId = _pools.length;
         _allTransactionsPoolIds.push(poolId);
@@ -50,7 +50,7 @@ contract SimplePools {
         _pools[poolId].token2Amount = 0;
         _pools[poolId].token2VirtualAmount = matchingPriceInToken2;
         _pools[poolId].constantProduct = token1Amount * matchingPriceInToken2;
-        _pools[poolId].maxPercentPerTransaction = maxPercentPerTransaction;
+        _pools[poolId].maxBuyToken1PercentPerTransaction = maxBuyToken1PercentPerTransaction;
         _pools[poolId].constantPrice = constantPrice;
         _pools[poolId].initialToken1Amount = token1Amount;
     }
@@ -77,7 +77,7 @@ contract SimplePools {
                     Math.ceilDiv(pool.constantProduct,
                              pool.token2VirtualAmount + pool.token2Amount + tokenToSellAmount);
             }
-            amountOut = Math.min(amountOut, Math.mulDiv(pool.token1Amount, pool.maxPercentPerTransaction, 100));
+            amountOut = Math.min(amountOut, Math.mulDiv(pool.token1Amount, pool.maxBuyToken1PercentPerTransaction, 100));
             require(pool.token2.allowance(msg.sender, address(this)) >= tokenToSellAmount, "trying to sell more than allowance");
             require(minReceiveTokenToBuyAmount <= amountOut,"minReceive is less than calcualted amount");
             // complete the transaction now
@@ -85,6 +85,7 @@ contract SimplePools {
             pool.token2Amount += tokenToSellAmount;
             require(pool.token1.transfer(msg.sender, amountOut), "cannot transfer from amountOut from pool");
             pool.token1Amount -= amountOut;
+            pool.constantProduct = (pool.token1Amount) * (pool.token2Amount + pool.token2VirtualAmount);
             return amountOut;
         } else if (tokenToBuy == pool.token2) {
             require(pool.token2Amount > 0, "zero amount of token for buy in pool");
@@ -96,7 +97,6 @@ contract SimplePools {
                         - Math.ceilDiv(pool.constantProduct,
                                pool.token1Amount + tokenToSellAmount);
             }
-            amountOut = Math.min(amountOut, Math.mulDiv(pool.token2Amount, pool.maxPercentPerTransaction, 100));
             require(pool.token1.allowance(msg.sender, address(this)) >= tokenToSellAmount, "trying to sell more than allowance");
             require(minReceiveTokenToBuyAmount <= amountOut,"minReceive is more than calcualted amount");
             // complete the transaction now
@@ -104,6 +104,7 @@ contract SimplePools {
             pool.token1Amount += tokenToSellAmount;
             require(pool.token2.transfer(msg.sender, amountOut), "cannot transfer from amountOut from pool");
             pool.token2Amount -= amountOut;
+            pool.constantProduct = (pool.token1Amount) * (pool.token2Amount + pool.token2VirtualAmount);
             return amountOut;
         }
         require(false, "Wrong token address or poolId");
