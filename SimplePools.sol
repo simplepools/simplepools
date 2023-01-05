@@ -336,10 +336,8 @@ contract SimplePools {
         return _pools.length;
     }
 
-    // Get pools from start index to end index [startPoolIndex, ..., endPoolIndex)
-    // start included, end not included
     /**
-     * Gets the states pf the pools in a given range [startPoolIndex, ..., endPoolIndex).
+     * Gets the states of the pools in a given range [startPoolIndex, ..., endPoolIndex).
      * Start index is included and end index is not included.
      * 
      * @param startPoolIndex the start index
@@ -359,9 +357,15 @@ contract SimplePools {
         return pools;
     }
     
-    // TODO Finish the documentation
-    // till end
-    function getPoolsFrom(uint startPoolIndex) external view returns (Pool[] memory) {
+    /**
+     * Gets the states of the pools from a given starting index till the end.
+     * 
+     * @param startPoolIndex the start index
+     *
+     * @return list of requested pools
+     */
+    function getPoolsFrom(
+            uint256 startPoolIndex) external view returns (Pool[] memory) {
        require(startPoolIndex < _pools.length, "invalid index");
        Pool[] memory pools = new Pool[](_pools.length - startPoolIndex);
        for (uint i = startPoolIndex; i < _pools.length; ++i) {
@@ -370,29 +374,56 @@ contract SimplePools {
         return pools;
     }
 
-    // Get pools specified in indexes array
-    function getPools(uint[] memory indexes) external view returns (Pool[] memory) {
+    /**
+     * Returns the states of the pools with the requested indexes.
+     * 
+     * @param indexes the list of requested pool indexes
+     * 
+     * @return list of requested pools
+     */
+    function getPools(
+            uint256[] memory indexes) external view returns (Pool[] memory) {
         Pool[] memory pools = new Pool[](indexes.length);
-        for (uint i = 0; i < indexes.length; ++i) {
+        for (uint256 i = 0; i < indexes.length; ++i) {
             Pool storage pool = _pools[indexes[i]];
             pools[i] = pool;
         }
         return pools;
     }
 
-    function getPool(uint poolId) external view returns (Pool memory) {
+    /**
+     * Returns the state of a single pool.
+     * 
+     * @param poolId the id of the requested pool
+     * 
+     * @return the requested pool 
+     */
+    function getPool(uint256 poolId) external view returns (Pool memory) {
         return _pools[poolId];
     }
 
-    function getTransactionsCount() external view returns (uint) {
+    /**
+     * Returns the count of all transactions executed with the smart contract.
+     */
+    function getTransactionsCount() external view returns (uint256) {
         return _allTransactionsPoolIds.length;
     }
 
-    // [startPoolIndex, ..., endPoolIndex)
-    // start included, end not included
+    /**
+     * Returns the list of pool indexes of the pools participating in
+     * the list of requested transactions in range [startTransactionIndex, ..., endTransactionIndex).
+     * 
+     * @param startTransactionIndex the index of the starting transaction
+     * @param endTransactionIndex the index of the last transaction
+     *
+     * @return the requested list of pool indexes
+     */
     function getPoolsForTransactionsWithIndexesBetween(
-            uint startTransactionIndex, uint endTransactionIndex) external view returns (uint[] memory) {
-        require(endTransactionIndex > startTransactionIndex && endTransactionIndex <= _allTransactionsPoolIds.length, "invalid indexes");
+            uint256 startTransactionIndex,
+            uint256 endTransactionIndex
+    ) external view returns (uint256[] memory) {
+        require(endTransactionIndex > startTransactionIndex && 
+                endTransactionIndex <= _allTransactionsPoolIds.length, "invalid indexes");
         uint[] memory poolIndexes = new uint[](endTransactionIndex - startTransactionIndex);
         for (uint i = startTransactionIndex; i < endTransactionIndex; ++i) {
             poolIndexes[i - startTransactionIndex] = _allTransactionsPoolIds[i];
@@ -400,6 +431,14 @@ contract SimplePools {
         return poolIndexes;
     }
 
+    /**
+     * Returns the list of pool indexes of the pools participating in
+     * the list of requested transactions in range [startTransactionIndex, ..., _allTransactionsPoolIds.length).
+     * 
+     * @param startTransactionIndex the index of the starting transaction
+     *
+     * @return the requested list of pool indexes
+     */
     function getPoolsForTransactionsWithIndexesFrom(
             uint startTransactionIndex) external view returns (uint[] memory) {
         require(startTransactionIndex < _allTransactionsPoolIds.length, "invalid index");
@@ -410,10 +449,24 @@ contract SimplePools {
         return poolIndexes;
     }
 
+    /**
+     * Returns the name of a given token
+     * 
+     * @param token the address of the requested token
+     * 
+     * @return name of the token
+     */
     function getTokenName(IERC20 token) external view returns (string memory) {
         return token.name();
     }
 
+    /**
+     * Returns the symbol of a given token
+     * 
+     * @param token the address of the requested token
+     * 
+     * @return symbol of the token
+     */
     function getTokenSymbol(IERC20 token) external view returns (string memory) {
         return token.symbol();
     }
