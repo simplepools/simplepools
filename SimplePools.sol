@@ -97,6 +97,7 @@ contract SimplePools {
                         - Math.ceilDiv(pool.constantProduct,
                                pool.token1Amount + tokenToSellAmount);
             }
+            amountOut = Math.min(amountOut, pool.token2Amount);
             require(pool.token1.allowance(msg.sender, address(this)) >= tokenToSellAmount, "trying to sell more than allowance");
             require(minReceiveTokenToBuyAmount <= amountOut,"minReceive is more than calcualted amount");
             // complete the transaction now
