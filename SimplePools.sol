@@ -1,4 +1,4 @@
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.17;
 // SPDX-License-Identifier: MIT
 
 /**
@@ -10,6 +10,11 @@ contract SimplePools {
      * Main structure for the simple DeFi pool.
      */ 
     struct Pool {
+
+        /**
+         * The ID of the pool.
+         */
+        uint256 poolId;
 
         /**
          * The first token in the pool (the token offered for selling).
@@ -133,7 +138,8 @@ contract SimplePools {
         uint poolId = _pools.length;
         _allTransactionsPoolIds.push(poolId);
         token1.transferFrom(msg.sender, address(this), token1Amount);
-        _pools.push().token1 = token1;
+        _pools.push().poolId = poolId;
+        _pools[poolId].token1 = token1;
         _pools[poolId].token2 = token2;
         _pools[poolId].token1Amount = token1Amount;
         _pools[poolId].token2Amount = 0;
