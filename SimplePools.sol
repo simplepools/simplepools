@@ -1,7 +1,13 @@
+/**
+ *Submitted for verification at Etherscan.io on 2023-01-07
+*/
+
 pragma solidity ^0.8.17;
 // SPDX-License-Identifier: MIT
 
 /**
+ * Simple Pools 
+ * https://simplepools.org/
  * DeFi pools with simple code and zero tax.
  */
 contract SimplePools {
