@@ -2,626 +2,326 @@ pragma solidity ^0.8.17;
 // SPDX-License-Identifier: MIT
 
 /**
- * Simple Pools 
+ * Simple Pools NFT Marketplace
+ *
  * https://simplepools.org/
  * DeFi pools with simple code and zero tax.
  */
-contract SimplePools {
+interface IERC721Receiver {
+    function onERC721Received(address,address,
+            uint256, bytes calldata) external returns (bytes4);
+}
 
-    /**
-     * Main structure for the simple DeFi pool.
-     */ 
-    struct Pool {
+interface IERC1155Receiver {
+    function onERC1155BatchReceived(address, address, 
+        uint256[] calldata, uint256[] calldata, bytes calldata
+    ) external returns (bytes4);
+}
 
-        /**
-         * The ID of the pool.
-         */
-        uint256 poolId;
+/**
+ * The marketplace contract.
+ */
+contract SimplePoolsNftMarketplace is IERC721Receiver, IERC1155Receiver {
 
-        /**
-         * The first token in the pool (the token offered for selling).
-         */
-        IERC20 token1;
-
-        /**
-         * The second token in the pool (the token required for buying token1).
-         */
-        IERC20 token2;
-
-        /**
-         * The current amount of token1 in the pool.
-         */
-        uint256 token1Amount;
-
-        /**
-         * The current amount of token2 in the pool.
-         */
-        uint256 token2Amount;
-
-        /**
-         * Initial price requested for token1 in token2.
-         */
-        uint256 token2VirtualAmount;
-
-        /**
-         * Maximum percent of token1 that can be bought with one transaction.
-         * For example when the pool is used like a limit order in orderbook
-         * the value of maxBuyToken1PercentPerTransaction can be 100% so the 
-         * order can be filled with one transaction. But if a newly created
-         * token for which the whole supply is added to a simple pool the value
-         * of maxBuyToken1PercentPerTransaction can be 1% (or 5, 10, 15, 50),
-         * depending on the use case.
-         */
-        uint8 maxBuyToken1PercentPerTransaction;
-
-        /**
-         * The constantProduct equals (token1Amount * (token2Amount + token2VirtualAmount))
-         * it is used to calculate the amount of bought and sold tokens on exchange transactions.
-         */
-        uint256 constantProduct; // (T1*(T2+VT2))=ConstantProduct
-
-        /**
-         * Flag indicating whether the pool is with changing price for token1 in token2.
-         * If the flag is "true" then the price will be always the same and constantProduct
-         * is not taken into account. Otherwise the pool changes the price on each transaction.
-         */
-        bool isConstantPrice;
-
-        /**
-         * The token1 amount value when the pools was created. It is used to calculate
-         * the amount of bought and sold tokens when the flag "isConstantPrice" is set to "true". 
-         */
-        uint256 initialToken1Amount;
-
-        /**
-         * The owner of the pool can take all tokens, change maxBuyToken1PercentPerTransaction,
-         * change isConstantPrice and etc. when the pool is not locked.
-         */
-        address poolOwner;
-
-        /**
-         * Flag indicating whether the pool is locked. Locked pools cannot be unlocked.
-         */
-        bool isLocked;
-
-        /**
-         * Flag indicating whether all amount of tokens (token1 and token2) are taken from
-         * the pool by the pool owner. Empty pools cannot be used. Locked pools cannot be emptied.
-         */
-        bool isEmpty;
+    struct NftListing {
+        uint256 listingId;
+        address listingOwner;
+        address nftContractAddress;
+        NftType nftType;
+        uint256[] tokenIds;
+        uint256[] tokenAmounts; // in case of ERC1155 listing
+        IERC20 erc20Token;
+        uint256 highestBid; // only for offer nft listings
+        uint256 buyoutPrice;
+        address currentHighestBidder; // only for offer nft listings
+        ListingStatus listingStatus;
+        ListingType listingType;
     }
 
-    /**
-     * List with all the pools in the smart contract.
-     */
-    Pool[] public _pools;
-
-    /**
-     * Each transaction with the smart contract is associated with a signle pool.
-     * This array keeps for each transaction with what pool it was associated.
-     * This is useful to sync the state of all pools in an indexed Database.
-     * 
-     * The procedure for syncing pool states is the following:
-     * The Database stores the index of the last transaction with which it has synced
-     * all pools. Then it gets the current state of transactions in the smart contract
-     * by querying _allTransactionsPoolIds.length, and then get the only the indexes of the
-     * pools that were modified by the lates transactions (not synced with the DB), and
-     * sync the states only for these pools.
-     */
-    uint256[] _allTransactionsPoolIds;
-
-    constructor() {}
-
-    /*
-     * Note: First the token contract have to allow the token for spending 
-     * by the SimplePools contract and then the operations can be performed.
-     */
-
-    /**
-     * Creates a simple pool.
-     * 
-     * @param token1 the first token in the pool (the token offered for selling)
-     * @param token2 the second token in the pool (the token required for buying token1)
-     * @param token1Amount the amount of token1 with which the pool is created
-     * @param matchingPriceInToken2 initial price requested for token1 in token2
-     * @param maxBuyToken1PercentPerTransaction maximum percent of token1 that can 
-     *        be bought with one transaction
-     * @param isConstantPrice indicating whether the pool is with changing price for token1 in token2
-     */
-    function createPool(
-        IERC20 token1,
-        IERC20 token2,
-        uint256 token1Amount,
-        uint256 matchingPriceInToken2,
-        uint8 maxBuyToken1PercentPerTransaction, 
-        bool isConstantPrice
-    ) external {
-        require(token1 != token2, "tokens must be different");
-        uint poolId = _pools.length;
-        _allTransactionsPoolIds.push(poolId);
-        token1.transferFrom(msg.sender, address(this), token1Amount);
-        _pools.push().poolId = poolId;
-        _pools[poolId].token1 = token1;
-        _pools[poolId].token2 = token2;
-        _pools[poolId].token1Amount = token1Amount;
-        _pools[poolId].token2Amount = 0;
-        _pools[poolId].token2VirtualAmount = matchingPriceInToken2;
-        _pools[poolId].maxBuyToken1PercentPerTransaction = maxBuyToken1PercentPerTransaction;
-        _pools[poolId].constantProduct = token1Amount * matchingPriceInToken2;
-        _pools[poolId].isConstantPrice = isConstantPrice;
-        _pools[poolId].initialToken1Amount = token1Amount;
-        _pools[poolId].poolOwner = msg.sender;
-        _pools[poolId].isLocked = false;
-        _pools[poolId].isEmpty = false;
+    enum ListingType {
+        OFFER_NFT_FOR_ERC20,
+        OFFER_ERC20_FOR_NFT
     }
 
-    /**
-     * Exchanges token for tokenToBuy from _pools[poolId].
-     * 
-     * @param tokenToBuy the requested token to buy is one of the tokens
-     *        in _pools[poolId]. This automatically makes the token to sell
-     *        the other token from the pool
-     * @param poolId the poolId for the pool where the exchange happens
-     * @param tokenToSellAmount the amount of token to sell for the exchange
-     * @param minReceiveTokenToBuyAmount the minimum amount received from tokenToBuy.
-     *        This param ensures that front-runner bots cannot take advantage of the
-     *        transaction. This should be set automatically by simplepools.org or
-     *        calculated manually.
-     * @return amount of tokenToBuy exchanged in the transaction
-     */
-    function exchangeToken(
-        IERC20 tokenToBuy, 
-        uint256 poolId, 
-        uint256 tokenToSellAmount, 
-        uint256 minReceiveTokenToBuyAmount
-    ) external returns (uint256) { 
-        require(!_pools[poolId].isEmpty, "Pool is empty");
-        Pool storage pool = _pools[poolId];
-        require(tokenToBuy == pool.token1 || tokenToBuy == pool.token2, "trying to buy from wrong pool");
-        _allTransactionsPoolIds.push(poolId);
-        if (tokenToBuy == pool.token1) {
-            uint amountOut;
-            if (pool.isConstantPrice) {
-                amountOut = Math.mulDiv(tokenToSellAmount, pool.initialToken1Amount, pool.token2VirtualAmount);
-            } else {
-                amountOut = pool.token1Amount -
-                    Math.ceilDiv(pool.constantProduct,
-                             pool.token2VirtualAmount + pool.token2Amount + tokenToSellAmount);
-            }
-            amountOut = Math.min(amountOut, Math.mulDiv(pool.token1Amount, pool.maxBuyToken1PercentPerTransaction, 100));
-            require(pool.token2.allowance(msg.sender, address(this)) >= tokenToSellAmount, "trying to sell more than allowance");
-            require(minReceiveTokenToBuyAmount <= amountOut,"minReceive is less than calcualted amount");
-            // complete the transaction now
-            require(pool.token2.transferFrom(msg.sender, address(this), tokenToSellAmount), "cannot transfer tokenToSellAmount");
-            pool.token2Amount += tokenToSellAmount;
-            require(pool.token1.transfer(msg.sender, amountOut), "cannot transfer from amountOut from pool");
-            pool.token1Amount -= amountOut;
-            pool.constantProduct = (pool.token1Amount) * (pool.token2Amount + pool.token2VirtualAmount);
-            return amountOut;
-        } else if (tokenToBuy == pool.token2) {
-            require(pool.token2Amount > 0, "zero amount of token for buy in pool");
-            uint amountOut;
-            if (pool.isConstantPrice) {
-                amountOut = Math.mulDiv(tokenToSellAmount, pool.token2VirtualAmount, pool.initialToken1Amount);
-            } else {
-                amountOut = pool.token2VirtualAmount + pool.token2Amount 
-                        - Math.ceilDiv(pool.constantProduct,
-                               pool.token1Amount + tokenToSellAmount);
-            }
-            amountOut = Math.min(amountOut, pool.token2Amount);
-            require(pool.token1.allowance(msg.sender, address(this)) >= tokenToSellAmount, "trying to sell more than allowance");
-            require(minReceiveTokenToBuyAmount <= amountOut,"minReceive is more than calcualted amount");
-            // complete the transaction now
-            require(pool.token1.transferFrom(msg.sender, address(this), tokenToSellAmount), "cannot transfer tokenToSellAmount");
-            pool.token1Amount += tokenToSellAmount;
-            require(pool.token2.transfer(msg.sender, amountOut), "cannot transfer from amountOut from pool");
-            pool.token2Amount -= amountOut;
-            pool.constantProduct = (pool.token1Amount) * (pool.token2Amount + pool.token2VirtualAmount);
-            return amountOut;
-        }
-        require(false, "Wrong token address or poolId");
-        return 0;
+    enum NftType {
+        ERC721,
+        ERC1155
     }
 
-    /**
-     * Transfers all tokens (token1 and token2) from a pool to
-     * the pool owner. Only callable by the pool owner.
-     *
-     * @param poolId the poolId of the pool
-     */
-    function getAllTokensFromPool(
-            uint256 poolId) external {
-        require(_pools.length > poolId, "invalid pool id");
-        require(!_pools[poolId].isLocked, "pool is locked");
-        require(!_pools[poolId].isEmpty, "pool is empty");
-        require(_pools[poolId].poolOwner == msg.sender, "only the pool owner can empty pool");
-        _allTransactionsPoolIds.push(poolId);
-        Pool storage pool = _pools[poolId];
-        pool.token1.transferFrom(address(this), msg.sender, pool.token1Amount);
-        pool.token1Amount = 0;
-        pool.token2.transferFrom(address(this), msg.sender, pool.token2Amount);
-        pool.token2Amount = 0;
-        pool.token2VirtualAmount = 0;
-        pool.isEmpty = true;
+    // TODO Add listings for whole collections (IERC1155) where there is price set
+    // for one token and users can buy only one token from the whole listing
+    // for preset price (price can be set by the owner in the process).
+
+    // TODO Add listings to exchange NFT for NFT
+
+    enum ListingStatus { 
+        IN_PROGRESS,
+        FINISHED_WITH_BUYOUT,
+        FINISHED_WITH_BID_ACCEPTED,
+        FINISHED_CANCELLED
     }
 
-    /**
-     * Locks a pool. Only callable by the pool owner.
-     * Locked pools cannot be unlocked and the tokens cannot be taken from the pool owner.
-     *
-     * @param poolId the id of the pool
-     *
-     * @return true if the operation succeeds
-     */
-    function lockPool(
-            uint256 poolId) external returns (bool) {
-        require(_pools.length > poolId, "invalid pool id");
-        require(!_pools[poolId].isLocked, "pool is already locked");
-        require(_pools[poolId].poolOwner == msg.sender, "only the pool owner can lock a pool");
-        _allTransactionsPoolIds.push(poolId);
-        _pools[poolId].isLocked = true;
-        return true;
+    function onERC721Received(address, address,
+         uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 
-    /**
-     * Changes the ownership of a pool. Only callable by the pool owner.
-     * If owner gets compromised and is fast enough they can transfer the ownership of the pool.
-     * 
-     * @param poolId the id of the pool
-     * @param newPoolOwner the address of the new pool owner
-     *
-     * @return true if the operation succeeds
-     */
-    function changeOwner(
-            uint256 poolId, 
-            address newPoolOwner) external returns (bool) {
-        require(poolId < _pools.length, "invalid poolId");
-        require(!_pools[poolId].isLocked, "pool is locked");
-        require(_pools[poolId].poolOwner == msg.sender, "only the pool owner can change ownership");
-        _pools[poolId].poolOwner = newPoolOwner;
-        _allTransactionsPoolIds.push(poolId);
-        return true;
+    function onERC1155BatchReceived(address, address,
+         uint256[] calldata, uint256[] calldata, bytes calldata
+    ) external pure returns (bytes4) {
+        return IERC1155Receiver.onERC1155BatchReceived.selector;
     }
 
-    /**
-     * Changes maxBuyToken1PercentPerTransaction. Only callable by the pool owner.
-     * 
-     * @param poolId the id of the pool
-     * @param newMaxBuyToken1PercentPerTransaction the new maxBuyToken1PercentPerTransaction
-     *
-     * @return true if the transaction succeeds
-     */
-    function changePoolMaxBuyToken1PercentPerTransaction(
-            uint256 poolId, 
-            uint8 newMaxBuyToken1PercentPerTransaction) external returns (bool) {
-        require(poolId < _pools.length, "invalid poolId");
-        require(!_pools[poolId].isLocked, "pool is locked");
-        require(_pools[poolId].poolOwner == msg.sender, 
-                "only the pool owner can change newMaxBuyToken1PercentPerTransaction");
-        require(newMaxBuyToken1PercentPerTransaction <= 100 &&
-                    newMaxBuyToken1PercentPerTransaction > 0, 
-                    "invalid max percent per transaction");
-        _pools[poolId].maxBuyToken1PercentPerTransaction = newMaxBuyToken1PercentPerTransaction;
-        _allTransactionsPoolIds.push(poolId);
-        return true;
-    }
+    NftListing[] public _listings;
+    uint256[] _allTransactionsListingIds;
 
-    /**
-     * Changes a pool constant product. Only callable by the pool owner.
-     * 
-     * @param poolId the poolId
-     * @param newConstantProduct the new constant product
-     *
-     * @return true if the operation succeeds
-     */
-    function changeContantProduct(
-            uint256 poolId, 
-            uint256 newConstantProduct) external returns (bool) {
-        require(poolId < _pools.length, "invalid poolId");
-        require(!_pools[poolId].isLocked, "pool is locked");
-        require(_pools[poolId].poolOwner == msg.sender, "only the pool owner can change the constant product");
-        require(newConstantProduct > 0, "invalid constant product (only positive numbers)");
-        _pools[poolId].constantProduct = newConstantProduct;
-        _allTransactionsPoolIds.push(poolId);
-        return true;
-    }
-
-    /**
-     * Returns whether a pool is locked.
-     * 
-     * @param poolId the id of the pool
-     *
-     * @return true if the pool is locked
-     */
-    function isPoolLocked(uint256 poolId) external view returns (bool) {
-        return _pools[poolId].isLocked;
-    }
-
-    /**
-     * @return number of pools in the smart contract.
-     */
-    function getPoolsCount() external view returns (uint) {
-        return _pools.length;
-    }
-
-    /**
-     * Gets the states of the pools in a given range [startPoolIndex, ..., endPoolIndex).
-     * Start index is included and end index is not included.
-     * 
-     * @param startPoolIndex the start index
-     * @param endPoolIndex the end index
-     *
-     * @return list of requested pools
-     */
-    function getPools(
-            uint256 startPoolIndex, 
-            uint256 endPoolIndex
-    ) external view returns (Pool[] memory) {
-       require(endPoolIndex > startPoolIndex && endPoolIndex <= _pools.length, "invalid indexes");
-       Pool[] memory pools = new Pool[](endPoolIndex - startPoolIndex);
-       for (uint i = startPoolIndex; i < endPoolIndex; ++i) {
-            pools[i - startPoolIndex] = _pools[i];
-        }
-        return pools;
-    }
-    
-    /**
-     * Gets the states of the pools from a given starting index till the end.
-     * 
-     * @param startPoolIndex the start index
-     *
-     * @return list of requested pools
-     */
-    function getPoolsFrom(
-            uint256 startPoolIndex) external view returns (Pool[] memory) {
-       require(startPoolIndex < _pools.length, "invalid index");
-       Pool[] memory pools = new Pool[](_pools.length - startPoolIndex);
-       for (uint i = startPoolIndex; i < _pools.length; ++i) {
-            pools[i - startPoolIndex] = _pools[i];
-        }
-        return pools;
-    }
-
-    /**
-     * Returns the states of the pools with the requested indexes.
-     * 
-     * @param indexes the list of requested pool indexes
-     * 
-     * @return list of requested pools
-     */
-    function getPools(
-            uint256[] memory indexes) external view returns (Pool[] memory) {
-        Pool[] memory pools = new Pool[](indexes.length);
-        for (uint256 i = 0; i < indexes.length; ++i) {
-            Pool storage pool = _pools[indexes[i]];
-            pools[i] = pool;
-        }
-        return pools;
-    }
-
-    /**
-     * Returns the state of a single pool.
-     * 
-     * @param poolId the id of the requested pool
-     * 
-     * @return the requested pool 
-     */
-    function getPool(uint256 poolId) external view returns (Pool memory) {
-        return _pools[poolId];
-    }
-
-    /**
-     * Returns the count of all transactions executed with the smart contract.
-     */
-    function getTransactionsCount() external view returns (uint256) {
-        return _allTransactionsPoolIds.length;
-    }
-
-    /**
-     * Returns the list of pool indexes of the pools participating in
-     * the list of requested transactions in range [startTransactionIndex, ..., endTransactionIndex).
-     * 
-     * @param startTransactionIndex the index of the starting transaction
-     * @param endTransactionIndex the index of the last transaction
-     *
-     * @return the requested list of pool indexes
-     */
-    function getPoolsForTransactionsWithIndexesBetween(
+    function getListingsForTransactionsWithIndexesBetween(
             uint256 startTransactionIndex,
             uint256 endTransactionIndex
     ) external view returns (uint256[] memory) {
         require(endTransactionIndex > startTransactionIndex && 
-                endTransactionIndex <= _allTransactionsPoolIds.length, "invalid indexes");
-        uint[] memory poolIndexes = new uint[](endTransactionIndex - startTransactionIndex);
+                endTransactionIndex <= _allTransactionsListingIds.length, "invalid indexes");
+        uint[] memory listingsIndexes = new uint[](endTransactionIndex - startTransactionIndex);
         for (uint i = startTransactionIndex; i < endTransactionIndex; ++i) {
-            poolIndexes[i - startTransactionIndex] = _allTransactionsPoolIds[i];
+            listingsIndexes[i - startTransactionIndex] = _allTransactionsListingIds[i];
         }
-        return poolIndexes;
+        return listingsIndexes;
     }
 
-    /**
-     * Returns the list of pool indexes of the pools participating in
-     * the list of requested transactions in range [startTransactionIndex, ..., _allTransactionsPoolIds.length).
-     * 
-     * @param startTransactionIndex the index of the starting transaction
-     *
-     * @return the requested list of pool indexes
-     */
-    function getPoolsForTransactionsWithIndexesFrom(
-            uint startTransactionIndex) external view returns (uint[] memory) {
-        require(startTransactionIndex < _allTransactionsPoolIds.length, "invalid index");
-        uint[] memory poolIndexes = new uint[](_allTransactionsPoolIds.length - startTransactionIndex);
-        for (uint i = startTransactionIndex; i < _allTransactionsPoolIds.length; ++i) {
-            poolIndexes[i - startTransactionIndex] = _allTransactionsPoolIds[i];
+    function getListings(
+            uint256 startListingIndex, 
+            uint256 endListingIndex
+    ) external view returns (NftListing[] memory) {
+       require(endListingIndex > startListingIndex && endListingIndex <= _listings.length, "invalid indexes");
+       NftListing[] memory listings = new NftListing[](endListingIndex - startListingIndex);
+       for (uint i = startListingIndex; i < endListingIndex; ++i) {
+            listings[i - startListingIndex] = _listings[i];
         }
-        return poolIndexes;
+        return listings;
     }
 
-    /**
-     * Returns the name of a given token
-     * 
-     * @param token the address of the requested token
-     * 
-     * @return name of the token
-     */
-    function getTokenName(IERC20 token) external view returns (string memory) {
-        return token.name();
+
+    function listNft(
+        address nftContractAddress,
+        NftType nftType,
+        uint256[] calldata tokenIds,
+        uint256[] calldata tokenAmounts, // used in case of ERC1155 listing otherwise it should be 1
+        IERC20 erc20Token,
+        uint256 startingPrice,
+        uint256 buyoutPrice
+    ) external {
+        uint256 listingId =_listings.length;
+        _allTransactionsListingIds.push(listingId);
+
+        _listings.push().listingId = listingId;
+        _listings[listingId].listingOwner = msg.sender;
+        _listings[listingId].nftContractAddress = nftContractAddress;
+        _listings[listingId].nftType = nftType;
+        _listings[listingId].tokenIds = tokenIds;
+        _listings[listingId].tokenAmounts = tokenAmounts;
+        _listings[listingId].erc20Token = erc20Token;
+        require(startingPrice >= 0, 'Invalid starting price. Only non-negative values.');
+        _listings[listingId].highestBid = startingPrice;
+        _listings[listingId].buyoutPrice = buyoutPrice;
+        _listings[listingId].listingStatus = ListingStatus.IN_PROGRESS;
+        _listings[listingId].listingType = ListingType.OFFER_NFT_FOR_ERC20;
+
+        // transfer NFT from msg.sender to this contract
+        _transferNft(
+            _listings[listingId].nftContractAddress,
+            msg.sender, address(this), 
+            _listings[listingId].tokenIds,
+            _listings[listingId].tokenAmounts, 
+            _listings[listingId].nftType
+        );
     }
 
-    /**
-     * Returns the symbol of a given token
-     * 
-     * @param token the address of the requested token
-     * 
-     * @return symbol of the token
-     */
-    function getTokenSymbol(IERC20 token) external view returns (string memory) {
-        return token.symbol();
+    function listErc20(
+        IERC20 erc20Token,
+        uint256 offeredPrice,
+        address nftContractAddress,
+        NftType nftType,
+        uint256[] calldata tokenIds,
+        uint256[] calldata tokenAmounts // used in case of ERC1155 listing otherwise it should be 1
+    ) external {
+        uint256 listingId =_listings.length;
+        _allTransactionsListingIds.push(listingId);
+        
+        _listings.push().listingId = listingId;
+        _listings[listingId].listingOwner = msg.sender;
+        _listings[listingId].nftContractAddress = nftContractAddress;
+        _listings[listingId].nftType = nftType;
+        _listings[listingId].tokenIds = tokenIds;
+        _listings[listingId].tokenAmounts = tokenAmounts;
+        _listings[listingId].erc20Token = erc20Token;
+        _listings[listingId].buyoutPrice = offeredPrice;
+
+        _listings[listingId].listingStatus = ListingStatus.IN_PROGRESS;
+        _listings[listingId].listingType = ListingType.OFFER_ERC20_FOR_NFT;
+
+        // transfer ERC20 from msg.sender to this contract
+        IERC20(erc20Token).transferFrom(msg.sender, address(this), offeredPrice);
     }
 
-    function getTokenDecimals(IERC20 token) external view returns (uint8) {
-        return token.decimals();
+    function buyoutErc20(uint256 listingId) external {
+        _allTransactionsListingIds.push(listingId);
+        NftListing storage listing = _listings[listingId];
+        require (listing.listingType == ListingType.OFFER_ERC20_FOR_NFT,
+            "buyoutErc20 supports only listings that offer ERC20 for NFT");
+        require (listing.listingStatus == ListingStatus.IN_PROGRESS,
+            "This NFT listing is finished");
+        // Transfer the requested NFT to listing owner.
+        _transferNft(listing.nftContractAddress,
+            msg.sender, listing.listingOwner, listing.tokenIds,
+            listing.tokenAmounts, listing.nftType);
+
+        // Transfer the offered ERC20 to msg.sender
+        IERC20(listing.erc20Token)
+            .transferFrom(address(this), msg.sender, listing.buyoutPrice);
+
+        listing.listingStatus = ListingStatus.FINISHED_WITH_BUYOUT;
     }
 
-    function getTokenTotalSupply(IERC20 token) external view returns (uint256) {
-        return token.totalSupply();
+    function buyoutNft(
+        uint256 listingId
+    ) external {
+        _allTransactionsListingIds.push(listingId);
+        NftListing storage listing = _listings[listingId];
+        require (listing.listingType == ListingType.OFFER_NFT_FOR_ERC20,
+                "buyoutNft supports only listings that offer NFT for ERC20");
+        require (listing.listingStatus == ListingStatus.IN_PROGRESS,
+            "This NFT listing is finished");
+        // Transfer current highest bid to the current highest bidder.
+        if (listing.currentHighestBidder != address(0)) {
+            IERC20(listing.erc20Token)
+                .transferFrom(address(this), listing.currentHighestBidder, 
+                    listing.highestBid);
+        }
+
+        // Try to transfer the money from msg.sender to the listing owner.
+        IERC20(listing.erc20Token)
+            .transferFrom(
+                msg.sender, 
+                listing.listingOwner,
+                listing.buyoutPrice
+            );
+        // Try to transfer the NFT to the msg.sender
+        _transferNft(listing.nftContractAddress,
+            address(this), msg.sender, listing.tokenIds,
+            listing.tokenAmounts, listing.nftType);
+        listing.listingStatus = ListingStatus.FINISHED_WITH_BUYOUT;
     }
 
-    function getTokenTotalAllowance(IERC20 token, address owner, address spender) external view returns (uint256) {
-        return token.allowance(owner, spender);
+    function bidOnNft(uint256 listingId, uint256 bidAmount) external {
+        _allTransactionsListingIds.push(listingId);
+        NftListing storage listing = _listings[listingId];
+        require (listing.listingType == ListingType.OFFER_NFT_FOR_ERC20,
+             "bitOnNft supports only listings that offer NFT for ERC20");
+        require (listing.listingStatus == ListingStatus.IN_PROGRESS,
+             "This NFT listing is finished");
+        require(bidAmount > listing.highestBid,
+             "The bidAmount must be higher than startingPrice or currentHighestBid");
+        // Transfer old highest bid to the old highest bidder.
+        if (listing.currentHighestBidder != address(0)) {
+            IERC20(listing.erc20Token)
+                .transferFrom(address(this), listing.currentHighestBidder, 
+                    listing.highestBid);
+        }
+        // Transfer the bid to the contract
+        IERC20(listing.erc20Token)
+            .transferFrom(msg.sender, address(this), bidAmount);
+        listing.highestBid = bidAmount;
+        listing.currentHighestBidder = msg.sender;
+    }
+
+    function acceptBidOnNft(uint256 listingId) external {
+        _allTransactionsListingIds.push(listingId);
+        NftListing storage listing = _listings[listingId];
+        require (listing.listingType == ListingType.OFFER_NFT_FOR_ERC20,
+            "acceptBidOnNft supports only listings that offer ECR20 for NFT");
+        require(listing.listingStatus == ListingStatus.IN_PROGRESS,
+            "This NFT listing is finished");
+        require(listing.listingOwner == msg.sender, 
+            "Only the listing owner can accept bids.");
+        require(listing.currentHighestBidder != address(0),
+            "There is no bid on the listing.");
+        // Transfer current highest bid to listing owner
+        IERC20(listing.erc20Token)
+            .transferFrom(address(this), listing.listingOwner, listing.highestBid);
+
+        // Transfer NFT to msg.sender
+        _transferNft(listing.nftContractAddress,
+            address(this), msg.sender, listing.tokenIds,
+            listing.tokenAmounts, listing.nftType);
+        listing.listingStatus = ListingStatus.FINISHED_WITH_BID_ACCEPTED;
+    }
+
+    function cancelListingErcForNft(uint256 listingId) external {
+        _allTransactionsListingIds.push(listingId);
+        NftListing storage listing = _listings[listingId];
+        require (listing.listingType == ListingType.OFFER_ERC20_FOR_NFT,
+            "cancelListing supports only listings that offer ERC20 for NFT");
+        require(listing.listingStatus == ListingStatus.IN_PROGRESS,
+            "This NFT listing is finished");
+        require(listing.listingOwner == msg.sender, 
+            "Only the listing owner can cancel listings.");
+        // Return the money to the listing owner
+        IERC20(listing.erc20Token)
+            .transferFrom(address(this), listing.listingOwner, listing.buyoutPrice);
+
+        listing.listingStatus = ListingStatus.FINISHED_CANCELLED;
+    }
+
+    function cancelListingNftForErc(uint256 listingId) external {
+        _allTransactionsListingIds.push(listingId);
+        NftListing storage listing = _listings[listingId];
+        require (listing.listingType == ListingType.OFFER_NFT_FOR_ERC20,
+            "cancelListing supports only listings that offer ECR20 for NFT");
+        require(listing.listingStatus == ListingStatus.IN_PROGRESS,
+            "This NFT listing is finished");
+        require(listing.listingOwner == msg.sender, 
+            "Only the listing owner can cancel listings");
+        // Return the money to current highest bidder
+        if (listing.currentHighestBidder != address(0)) {
+            IERC20(listing.erc20Token)
+                .transferFrom(address(this), listing.currentHighestBidder, listing.highestBid);
+        }
+        _transferNft(listing.nftContractAddress, 
+                address(this), msg.sender, listing.tokenIds, 
+                listing.tokenAmounts, listing.nftType);
+        listing.listingStatus = ListingStatus.FINISHED_CANCELLED;
+    }
+
+    function _transferNft(address nftContractAddress,
+        address from,
+        address to,
+        uint256[] storage tokenIds,
+        uint256[] storage tokenAmounts,
+        NftType nftType
+    ) private {
+        if (nftType == NftType.ERC721) {
+            for (uint i = 0; i < tokenIds.length; ++i) {
+                IERC721(nftContractAddress).safeTransferFrom(
+                    from, to, tokenIds[i]);
+            }
+        } else if (nftType == NftType.ERC1155) {
+            IERC1155(nftContractAddress).safeBatchTransferFrom(
+                from, to, tokenIds, tokenAmounts, "");
+        } else {
+            require(false, "Invalid NFT type, only ERC721 and ERC1155 are supported");
+        }
     }
 }
 
-/**
- * @dev Standard math utilities missing in the Solidity language.
- */
-library Math {
-    enum Rounding {
-        Down, // Toward negative infinity
-        Up, // Toward infinity
-        Zero // Toward zero
-    }
+interface IERC721 {
+    function safeTransferFrom(address _from, address _to, 
+            uint256 _tokenId) external payable;
+}
 
-    /**
-     * @dev Returns the smallest of two numbers.
-     */
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a < b ? a : b;
-    }
-
-    /**
-     * @dev Returns the ceiling of the division of two numbers.
-     *
-     * This differs from standard division with `/` in that it rounds up instead
-     * of rounding down.
-     */
-    function ceilDiv(uint256 a, uint256 b) internal pure returns (uint256) {
-        // (a + b - 1) / b can overflow on addition, so we distribute.
-        return a == 0 ? 0 : (a - 1) / b + 1;
-    }
-
-    /**
-     * @notice Calculates floor(x * y / denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
-     * @dev Original credit to Remco Bloemen under MIT license (https://xn--2-umb.com/21/muldiv)
-     * with further edits by Uniswap Labs also under MIT license.
-     */
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 denominator
-    ) internal pure returns (uint256 result) {
-        unchecked {
-            // 512-bit multiply [prod1 prod0] = x * y. Compute the product mod 2^256 and mod 2^256 - 1, then use
-            // use the Chinese Remainder Theorem to reconstruct the 512 bit result. The result is stored in two 256
-            // variables such that product = prod1 * 2^256 + prod0.
-            uint256 prod0; // Least significant 256 bits of the product
-            uint256 prod1; // Most significant 256 bits of the product
-            assembly {
-                let mm := mulmod(x, y, not(0))
-                prod0 := mul(x, y)
-                prod1 := sub(sub(mm, prod0), lt(mm, prod0))
-            }
-
-            // Handle non-overflow cases, 256 by 256 division.
-            if (prod1 == 0) {
-                return prod0 / denominator;
-            }
-
-            // Make sure the result is less than 2^256. Also prevents denominator == 0.
-            require(denominator > prod1);
-
-            ///////////////////////////////////////////////
-            // 512 by 256 division.
-            ///////////////////////////////////////////////
-
-            // Make division exact by subtracting the remainder from [prod1 prod0].
-            uint256 remainder;
-            assembly {
-                // Compute remainder using mulmod.
-                remainder := mulmod(x, y, denominator)
-
-                // Subtract 256 bit number from 512 bit number.
-                prod1 := sub(prod1, gt(remainder, prod0))
-                prod0 := sub(prod0, remainder)
-            }
-
-            // Factor powers of two out of denominator and compute largest power of two divisor of denominator. Always >= 1.
-            // See https://cs.stackexchange.com/q/138556/92363.
-
-            // Does not overflow because the denominator cannot be zero at this stage in the function.
-            uint256 twos = denominator & (~denominator + 1);
-            assembly {
-                // Divide denominator by twos.
-                denominator := div(denominator, twos)
-
-                // Divide [prod1 prod0] by twos.
-                prod0 := div(prod0, twos)
-
-                // Flip twos such that it is 2^256 / twos. If twos is zero, then it becomes one.
-                twos := add(div(sub(0, twos), twos), 1)
-            }
-
-            // Shift in bits from prod1 into prod0.
-            prod0 |= prod1 * twos;
-
-            // Invert denominator mod 2^256. Now that denominator is an odd number, it has an inverse modulo 2^256 such
-            // that denominator * inv = 1 mod 2^256. Compute the inverse by starting with a seed that is correct for
-            // four bits. That is, denominator * inv = 1 mod 2^4.
-            uint256 inverse = (3 * denominator) ^ 2;
-
-            // Use the Newton-Raphson iteration to improve the precision. Thanks to Hensel's lifting lemma, this also works
-            // in modular arithmetic, doubling the correct bits in each step.
-            inverse *= 2 - denominator * inverse; // inverse mod 2^8
-            inverse *= 2 - denominator * inverse; // inverse mod 2^16
-            inverse *= 2 - denominator * inverse; // inverse mod 2^32
-            inverse *= 2 - denominator * inverse; // inverse mod 2^64
-            inverse *= 2 - denominator * inverse; // inverse mod 2^128
-            inverse *= 2 - denominator * inverse; // inverse mod 2^256
-
-            // Because the division is now exact we can divide by multiplying with the modular inverse of denominator.
-            // This will give us the correct result modulo 2^256. Since the preconditions guarantee that the outcome is
-            // less than 2^256, this is the final result. We don't need to compute the high bits of the result and prod1
-            // is no longer required.
-            result = prod0 * inverse;
-            return result;
-        }
-    }
-
-    /**
-     * @notice Calculates x * y / denominator with full precision, following the selected rounding direction.
-     */
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 denominator,
-        Rounding rounding
-    ) internal pure returns (uint256) {
-        uint256 result = mulDiv(x, y, denominator);
-        if (rounding == Rounding.Up && mulmod(x, y, denominator) > 0) {
-            result += 1;
-        }
-        return result;
-    }
+interface IERC1155 {
+    function safeBatchTransferFrom(address _from, address _to,
+         uint256[] calldata _ids, uint256[] calldata _values, 
+         bytes calldata _data) external;
 }
 
 interface IERC20 {
