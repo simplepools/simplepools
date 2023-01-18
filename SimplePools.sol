@@ -2,9 +2,9 @@ pragma solidity ^0.8.17;
 // SPDX-License-Identifier: MIT
 
 /**
- * Simple Pools 
+ * Simple Pools
  * https://simplepools.org/
- * DeFi pools with simple code and zero tax.
+ * DeFi made simple.
  */
 contract SimplePools {
 
@@ -361,8 +361,8 @@ contract SimplePools {
        Pool[] memory pools = new Pool[](endPoolIndex - startPoolIndex);
        for (uint i = startPoolIndex; i < endPoolIndex; ++i) {
             pools[i - startPoolIndex] = _pools[i];
-        }
-        return pools;
+       }
+       return pools;
     }
     
     /**

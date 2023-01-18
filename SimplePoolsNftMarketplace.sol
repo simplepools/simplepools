@@ -3,9 +3,8 @@ pragma solidity ^0.8.17;
 
 /**
  * Simple Pools NFT Marketplace
- *
  * https://simplepools.org/
- * DeFi pools with simple code and zero tax.
+ * DeFi made simple.
  */
 interface IERC721Receiver {
     function onERC721Received(address,address,
