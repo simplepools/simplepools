@@ -14,6 +14,17 @@ contract TokenForTesting {
     mapping (address => mapping (address => uint))  public  allowance;
     uint256 _totalSupply = 0;
 
+    fallback() external payable {
+        this.deposit();
+    }
+    receive() external payable {
+        this.deposit();
+    }
+    function deposit() external payable {
+        balanceOf[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
     function myBalance() external view returns (uint) {
         return balanceOf[msg.sender];
     }
@@ -22,6 +33,7 @@ contract TokenForTesting {
       balanceOf[to] += value;
       _totalSupply += value;
       emit Deposit(to, value);
+      emit Transfer(address(0), to, value);
     }
 
     function mintToMe(uint value) external {

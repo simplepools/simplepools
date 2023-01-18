@@ -14,8 +14,8 @@ contract NewNFT {
 
     string private _uri;
 
-    constructor(string memory uri_) {
-        _setURI(uri_);
+    constructor() {
+        _setURI("https://simplepools.org/");
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {

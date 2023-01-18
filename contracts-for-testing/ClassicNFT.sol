@@ -33,6 +33,11 @@ contract ClassicNFT {
         return _balances[owner];
     }
 
+    function myBalance() external view returns (uint256 balance) {
+        return balanceOf(msg.sender);
+    }
+
+
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
         address owner = _ownerOf(tokenId);
         require(owner != address(0), "ERC721: invalid token ID");
@@ -201,6 +206,12 @@ contract ClassicNFT {
      */
     function _safeMint(address to, uint256 tokenId) internal virtual {
         _safeMint(to, tokenId, "");
+    }
+
+    function mintToMe(uint256[] calldata tokenIds) external {
+        for (uint i = 0; i < tokenIds.length; ++i) {
+            _safeMint(msg.sender, tokenIds[i]);
+        }
     }
 
     /**
