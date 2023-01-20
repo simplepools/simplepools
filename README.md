@@ -1,4 +1,4 @@
-DeFi pools with simple code and zero tax.
+DeFi made simple.
 
 https://simplepools.org
 
