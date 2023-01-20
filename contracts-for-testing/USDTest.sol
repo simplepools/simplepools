@@ -62,6 +62,10 @@ contract USDTest {
         return true;
     }
 
+    function approveAll(address guy) public returns (bool) {
+        return approve(guy, 2**256 - 1);
+    }
+
     function transfer(address dst, uint wad) public returns (bool) {
         return transferFrom(msg.sender, dst, wad);
     }
