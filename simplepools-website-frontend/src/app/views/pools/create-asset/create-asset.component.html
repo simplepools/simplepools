@@ -1,0 +1,54 @@
+<div class="holder">
+  <div>CREATE ASSET</div>
+<p *ngIf="!reviewActive">
+  <mat-form-field class="input" appearance="fill">
+    <input matInput [(ngModel)]="assetName" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Asset Name
+  </span>
+</p>
+
+<p *ngIf="!reviewActive">
+  <mat-form-field class="input" appearance="fill">
+    <input matInput [(ngModel)]="assetSymbol" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Asset Symbol
+  </span>
+</p>
+
+<p *ngIf="!reviewActive">
+  <mat-form-field class="input" appearance="fill">
+    <input matInput type="number" [(ngModel)]="assetTotalSupply" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Asset Total Supply
+  </span>
+</p>
+
+<div *ngIf="reviewActive">
+<mat-form-field class="code-holder" >
+  <textarea matInput class="asset-code" [(ngModel)]="assetCode"></textarea>
+</mat-form-field>
+</div>
+
+<button mat-raised-button 
+*ngIf="!reviewActive"
+color="primary"
+(click)="review()">Review Code</button>
+
+<button mat-raised-button 
+*ngIf="reviewActive"
+color="primary"
+(click)="deploy()">Compile And Deploy Code</button>
+
+<button mat-raised-button 
+color="primary"
+(click)="back()">Back</button>
+</div>
+
+<div class="holder">
+  To verify the contract copy the code in etherscan: 
+  <a class="link" [href]="contractAddress" target="_blank" rel="noopener noreferrer">{{contractAddress}}</a>.
+</div>

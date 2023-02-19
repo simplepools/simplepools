@@ -1,0 +1,805 @@
+[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "_pools",
+		"outputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			},
+			{
+				"internalType": "bool",
+				"name": "isAsset1NativeBlockchainCurrency",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "asset1",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isAsset2NativeBlockchainCurrency",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "asset2",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "asset1Amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "asset2Amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "asset2InitiallyAskedAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint8",
+				"name": "maxBuyAsset1PercentPerTransaction",
+				"type": "uint8"
+			},
+			{
+				"internalType": "uint256",
+				"name": "constantProduct",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isConstantPrice",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "initialAsset1Amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address payable",
+				"name": "poolOwner",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isLocked",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isEmpty",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newConstantProduct",
+				"type": "uint256"
+			}
+		],
+		"name": "changeContantProduct",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			},
+			{
+				"internalType": "address",
+				"name": "newPoolOwner",
+				"type": "address"
+			}
+		],
+		"name": "changeOwner",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint8",
+				"name": "newMaxBuyAsset1PercentPerTransaction",
+				"type": "uint8"
+			}
+		],
+		"name": "changePoolMaxBuyAsset1PercentPerTransaction",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contractOwner",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "poolCreatorAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isAsset1Native",
+				"type": "bool"
+			},
+			{
+				"internalType": "contract IERC20",
+				"name": "asset1",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isAsset2Native",
+				"type": "bool"
+			},
+			{
+				"internalType": "contract IERC20",
+				"name": "asset2",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "asset1Amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "asset2InitiallyAskedAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint8",
+				"name": "maxBuyAsset1PercentPerTransaction",
+				"type": "uint8"
+			},
+			{
+				"internalType": "bool",
+				"name": "isConstantPrice",
+				"type": "bool"
+			}
+		],
+		"name": "createPool",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "personExecutingTheExchange",
+				"type": "address"
+			},
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			},
+			{
+				"internalType": "bool",
+				"name": "isBuyingAsset1",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "sellAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "minReceiveAssetToBuyAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "exchangeAsset",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			}
+		],
+		"name": "getAllAssetsFromPool",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			}
+		],
+		"name": "getPool",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint64",
+						"name": "poolId",
+						"type": "uint64"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset1NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset1",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset2NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset2",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2InitiallyAskedAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "maxBuyAsset1PercentPerTransaction",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "constantProduct",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isConstantPrice",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "initialAsset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address payable",
+						"name": "poolOwner",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isLocked",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEmpty",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct SimplePools.Pool",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64[]",
+				"name": "indexes",
+				"type": "uint64[]"
+			}
+		],
+		"name": "getPools",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint64",
+						"name": "poolId",
+						"type": "uint64"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset1NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset1",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset2NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset2",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2InitiallyAskedAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "maxBuyAsset1PercentPerTransaction",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "constantProduct",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isConstantPrice",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "initialAsset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address payable",
+						"name": "poolOwner",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isLocked",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEmpty",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct SimplePools.Pool[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "startPoolIndex",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "endPoolIndex",
+				"type": "uint64"
+			}
+		],
+		"name": "getPools",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint64",
+						"name": "poolId",
+						"type": "uint64"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset1NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset1",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset2NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset2",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2InitiallyAskedAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "maxBuyAsset1PercentPerTransaction",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "constantProduct",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isConstantPrice",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "initialAsset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address payable",
+						"name": "poolOwner",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isLocked",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEmpty",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct SimplePools.Pool[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getPoolsCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "startTransactionIndex",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "endTransactionIndex",
+				"type": "uint64"
+			}
+		],
+		"name": "getPoolsForTransactionsWithIndexesBetween",
+		"outputs": [
+			{
+				"internalType": "uint64[]",
+				"name": "",
+				"type": "uint64[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "startTransactionIndex",
+				"type": "uint64"
+			}
+		],
+		"name": "getPoolsForTransactionsWithIndexesFrom",
+		"outputs": [
+			{
+				"internalType": "uint64[]",
+				"name": "",
+				"type": "uint64[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "startPoolIndex",
+				"type": "uint64"
+			}
+		],
+		"name": "getPoolsFrom",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint64",
+						"name": "poolId",
+						"type": "uint64"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset1NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset1",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAsset2NativeBlockchainCurrency",
+						"type": "bool"
+					},
+					{
+						"internalType": "address",
+						"name": "asset2",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "asset2InitiallyAskedAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "maxBuyAsset1PercentPerTransaction",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "constantProduct",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isConstantPrice",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "initialAsset1Amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address payable",
+						"name": "poolOwner",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isLocked",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEmpty",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct SimplePools.Pool[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTransactionsCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			}
+		],
+		"name": "isPoolLocked",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "poolId",
+				"type": "uint64"
+			}
+		],
+		"name": "lockPool",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint8",
+				"name": "newTaxIndexFromValidContractTransactionTaxes",
+				"type": "uint8"
+			}
+		],
+		"name": "setNewGlobalTax",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "setNewOwner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+]

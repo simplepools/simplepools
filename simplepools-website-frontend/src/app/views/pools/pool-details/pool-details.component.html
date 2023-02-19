@@ -1,0 +1,62 @@
+<div class="holder">
+  <span>TODO when the chain is changed from the chain selector change to readonly view and show incorrect chain if the pool is not for the correct chain.</span>
+    <!-- <a routerLink="/pools"> -->
+        <button mat-raised-button 
+            color="primary"
+            (click)="back()">Back</button>
+            <p>
+                <mat-form-field class="input" appearance="fill">
+                  <input matInput type="number" [(ngModel)]="sellValue" 
+                    (ngModelChange)="sellValueChanged($event)" >
+                  <span  matSuffix>{{sellingAsset}}</span>
+                </mat-form-field>
+                <span>
+                    Balance {{sellingAssetBalance}}
+                    <button color="primary" mat-raised-button
+                        (click)="maxSelling()">Max</button>
+                </span>
+              </p>
+              <button mat-raised-button 
+                    class="minus-30-margin-top"
+                    color="primary"
+                    (click)="swapSellingAsset()">
+                    <mat-icon>arrow_downward</mat-icon></button>
+              <p>
+                <mat-form-field 
+                    class="input minus-15-margin-top" appearance="fill">
+                    <span matPrefix>~</span>
+                    <input matInput readonly [(ngModel)]="buyValue">
+                    <span matSuffix>{{buyingAsset}}</span>
+                  </mat-form-field>
+                  <span>
+                    Balance {{buyingAssetBalance}}
+                  </span>
+              </p>
+              <!-- TODO make button approve instead of exchange
+                    in case asset is not approved    
+                -->
+                <button mat-raised-button 
+                    class="minus-15-margin-top 
+                            margin-bottom-30
+                            disabled-color"
+                    color="primary"
+                    *ngIf="isApproveRequired"
+                    (click)="approve()">Approve</button>
+              <button mat-raised-button 
+                    class="minus-15-margin-top 
+                            margin-bottom-30
+                            disabled-color"
+                    color="primary"
+                    [disabled]="isApproveRequired"
+                    (click)="exchange()">Exchange</button>
+    <!-- </a> -->
+    <mat-card class="card">
+        <mat-card-header>
+            <mat-card-title>Pool Details:</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <p *ngFor="let field of poolFields; index as i;">
+                {{field}}: {{poolValues[i]}}</p>
+        </mat-card-content>
+    </mat-card>
+</div>

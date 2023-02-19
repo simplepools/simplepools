@@ -1,0 +1,48 @@
+
+.holder {
+    padding: 10px;
+}
+
+.card {
+    background-color: #4e4636;
+}
+
+.disabled-color[disabled] {
+    color: #897654;
+}
+
+.minus-15-margin-top {
+    margin-top: -15px;
+}
+
+.minus-15-margin-top {
+    margin-top: -15px;
+}
+
+.margin-bottom-30 {
+    margin-bottom: 30px;;
+}
+
+.input {
+    width: 400px;
+}
+
+.input span {
+        margin-right: 5px;
+        margin-left: 4px;
+}
+
+.input input {
+    color: orange;
+}
+
+.input input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+/* .input input[type=number] {
+  -moz-appearance: textfield;
+} */

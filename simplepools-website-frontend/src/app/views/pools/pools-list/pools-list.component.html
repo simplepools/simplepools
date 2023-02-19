@@ -1,0 +1,64 @@
+<div>
+  <span>TODO leave blockchain selector for read only but show the selected chain on top.
+  </span>
+  
+    <mat-form-field class="select-blockchain" appearance="fill">
+    <mat-label>Blockchain</mat-label>
+      <mat-select 
+        [(ngModel)]="selectedBlockchainIndex"
+        (selectionChange)="selectedBlockchainChanged(selectedBlockchainIndex)">
+        <mat-option *ngFor="let item of [].constructor(blockchains.length); let i = index"
+             [value]="i">
+           <span>
+                <img width="16px" [src]="'./assets/' + blockchains[i].icon">
+           </span>
+           {{ blockchains[i].name }}
+         </mat-option>
+     </mat-select>
+   </mat-form-field>
+           
+   <a [href]="blockchains[selectedBlockchainIndex].scanUrl"
+                     target="_blank" rel="noopener noreferrer">
+           <button
+                class="scan-button" mat-raised-button color="primary">
+              <img width="16px" [src]="'./assets/' + blockchains[selectedBlockchainIndex].scanIcon">
+        </button>
+    </a>        
+</div>
+
+<div>
+  <button class="create-pool"
+     mat-raised-button color="primary"
+     routerLink="create-pool">
+     Create Pool
+  </button>
+  <button class="create-pool"
+    mat-raised-button color="primary"
+    routerLink="create-asset">
+    Create Asset
+  </button>
+</div>
+
+<div class="table-holder">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+        <ng-container [matColumnDef]="column" *ngFor="let column of displayedColumns">
+            <th mat-header-cell *matHeaderCellDef> {{column}} </th>
+            <td mat-cell *matCellDef="let element">
+                 {{element[column]}} 
+            </td>
+        </ng-container>
+        
+        <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+        <tr mat-row 
+            (click)="rowClicked(row)"
+            routerLink="pool-details/{{ row.poolId }}"
+            *matRowDef="let row; columns: columnsToDisplay;"></tr>
+
+    </table>
+</div>
+<mat-paginator 
+  #paginator
+  [pageSizeOptions]="[10, 100, 1]"
+  [length]="totalNumberOfPools" 
+  aria-label="Select page"></mat-paginator>

@@ -1,0 +1,44 @@
+path {
+    fill: transparent;
+}
+
+.simple-pools {
+    margin-top: 10px;
+}
+
+.simple-pools text {
+    fill: #FF9800;
+    font-size: 60px;
+}
+
+.sppls {
+    fill: #ff4000;
+    font-size: 60px;
+}
+
+.slogan {
+    color: #FF9800;
+    font-size: 30px;
+    text-align: center;
+}
+
+.show-buttons {
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.footer {
+    position: relative;
+    /* left: 50%; */
+    /* margin-left: -86px; */
+    bottom: 0%;
+    text-align: center;
+  }
+  
+  .footer a {
+    color: orange;
+  }
+  
+  

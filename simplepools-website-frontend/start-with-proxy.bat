@@ -1,0 +1,1 @@
+npm run start -- --proxy-config src/proxy.config.json

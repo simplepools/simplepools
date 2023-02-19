@@ -1,0 +1,8 @@
+{
+    "/services": {
+      "target": "https://localhost:443/",
+      "secure": false,
+      "logLevel": "debug",
+      "changeOrigin": true
+    }
+}

@@ -1,0 +1,88 @@
+.mat-mdc-row .mat-mdc-cell {
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+    cursor: pointer;
+}
+
+.mat-mdc-row:hover .mat-mdc-cell {
+    border-color: currentColor;
+}
+
+mat-paginator {
+    background: #4440408c;
+    color: orange;
+    position: sticky;
+    left: 0;
+    right: 0;
+    // min-width: 600px;
+}
+
+::ng-deep .mat-mdc-button-base {
+    background: #444040;
+}
+
+::ng-deep .mat-mdc-icon-button[disabled][disabled] {
+    background: #444040;
+}
+
+::ng-deep .mat-mdc-paginator-icon {
+    fill: orange;
+}
+
+.select-blockchain {
+    width: 370px;
+}
+
+.create-pool {
+    margin: 10px;
+}
+
+.table-holder {
+    padding: 10px;
+    overflow: auto;
+}
+
+.scan-button {
+    margin: 10px;
+    margin-bottom: 30px;
+}
+
+.mat-mdc-option:hover:not(.mdc-list-item--disabled), .mat-mdc-option:focus:not(.mdc-list-item--disabled), .mat-mdc-option.mat-mdc-option-active, .mat-mdc-option.mdc-list-item--selected:not(.mat-mdc-option-multiple):not(.mdc-list-item--disabled) {
+    background: rgba(0, 0, 0, 0.34);
+}
+
+::ng-deep .mdc-list-item__primary-text {
+    color: orange;
+}
+
+::ng-deep .mat-mdc-select-value-text {
+    color: orange;
+}
+
+mat-label {
+    color: orange;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+    background: #424242 !important;
+}
+
+::ng-deep .mdc-menu-surface {
+    background: #424242 !important;
+}
+
+.mat-mdc-table {
+    background: #424242;
+}
+
+.mdc-data-table__cell {
+    color: orange;
+}
+
+.mdc-data-table__header-cell {
+    color: orange;
+}
+
+mat-row:hover {
+    background-color: rgb(84, 84, 84) !important;
+}

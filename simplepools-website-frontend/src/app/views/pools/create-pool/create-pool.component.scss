@@ -1,0 +1,26 @@
+
+.holder {
+    margin-left: 10px;
+}
+
+input {
+    color: orange !important;
+}
+
+.checkbox label {
+    color: orange;
+}
+
+.mdc-checkbox__background {
+    background-color: rgb(117, 110, 96) !important;
+}
+
+.checkbox svg {
+    color: orange !important;
+}
+
+.input input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

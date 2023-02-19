@@ -1,0 +1,10 @@
+<div class="nav">
+    <a [routerLink]="['/homepage']">
+            <img class="logo" src="../../../assets/simplepools-logo.png" height="50">
+    </a>
+    <w3m-network-switch class="network-switch"></w3m-network-switch>
+    <w3m-core-button class="connect-wallet-button"></w3m-core-button>
+</div>  
+<div [@routeAnimations]="getPoolAnimationData()">
+    <router-outlet></router-outlet>
+</div>

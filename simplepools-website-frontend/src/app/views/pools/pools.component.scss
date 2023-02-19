@@ -1,0 +1,34 @@
+.nav {
+    display: flex;
+}
+
+.connect-wallet-button {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+.network-switch {
+    margin-top: 10px;
+    margin-right: 10px;
+    margin-left: auto;
+}
+
+.table-holder {
+    padding: 30px;
+}
+
+.mat-mdc-table {
+    background: #424242;
+}
+
+.mdc-data-table__cell {
+    color: orange;
+}
+
+.mdc-data-table__header-cell {
+    color: orange;
+}
+
+mat-row:hover {
+    background-color: rgb(84, 84, 84) !important;
+}

@@ -1,0 +1,70 @@
+<div class="holder">
+  <div>CREATE POOL</div>
+<p>
+  <mat-form-field class="input" appearance="fill">
+    <input matInput [(ngModel)]="asset1" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Offered Asset Address
+  </span>
+</p>
+<p>
+  <mat-checkbox class="checkbox" [(ngModel)]="isAsset1Native" [disabled]="true">Is offered asset native? (not supported)</mat-checkbox>
+</p>
+
+<p>
+  <mat-form-field class="input" appearance="fill">
+    <input matInput [(ngModel)]="asset2" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Requested Asset Address
+  </span>
+</p>
+<p>
+  <mat-checkbox class="checkbox" [(ngModel)]="isAsset2Native">Is requested asset native?</mat-checkbox>
+</p>
+<p>
+  <mat-form-field class="input" appearance="fill">
+    <input matInput type="number" [(ngModel)]="asset1Amount" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Offered Asset Amount
+  </span>
+</p>
+<p>
+  <mat-form-field class="input" appearance="fill">
+    <input matInput type="number" [(ngModel)]="asset2InitiallyAskedAmount" autocomplete="off"> 
+  </mat-form-field>
+  <span>
+      Requested Asset Initial Amount
+  </span>
+</p>
+
+<p>
+  <mat-form-field class="input" appearance="fill">
+    <input matInput type="number" [(ngModel)]="maxBuyAsset1PercentPerTransaction" readonly
+                onfocus="this.removeAttribute('readonly');"> 
+  </mat-form-field>
+  <span>
+    Max Buy Offered Asset Percent Per Transaction
+  </span>
+</p>
+
+<p>
+  <mat-checkbox class="checkbox" [(ngModel)]="isConstantPrice" autocomplete="off">Is price constant?</mat-checkbox>
+</p>
+
+<button mat-raised-button 
+  color="primary"
+  *ngIf="isApproveRequired"
+  (click)="approve()">Approve</button>
+
+<button mat-raised-button 
+color="primary"
+[disabled]="isApproveRequired"
+(click)="create()">Create</button>
+
+<button mat-raised-button 
+color="primary"
+(click)="back()">Back</button>
+</div>

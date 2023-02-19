@@ -1,0 +1,45 @@
+
+.holder {
+    margin-left: 10px;
+}
+
+input {
+    color: orange !important;
+}
+
+.checkbox label {
+    color: orange;
+}
+
+.mdc-checkbox__background {
+    background-color: rgb(117, 110, 96) !important;
+}
+
+.link {
+    color: orange;
+}
+
+.checkbox svg {
+    color: orange !important;
+}
+
+.input input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.code-holder {
+    margin-top: 10px;
+}
+
+.code-holder .mat-mdc-text-field-wrapper {
+    min-width: 1000px;;
+}
+
+.asset-code {
+    color: orange !important;
+    // margin-top: 10px;
+    // min-width: 1024px;
+    min-height: 768px;
+}
