@@ -38,5 +38,5 @@ jobs:
         cache: 'maven'
     - name: Build with Maven
       working-directory: simplepools-webapp
-      run: mvnw clean install
+      run: mvn clean install spring-boot:repackage
     - run: find simplepools-webapp/target
