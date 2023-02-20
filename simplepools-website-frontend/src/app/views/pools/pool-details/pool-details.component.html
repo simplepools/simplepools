@@ -55,6 +55,11 @@
             <mat-card-title>Pool Details:</mat-card-title>
         </mat-card-header>
         <mat-card-content>
+            <p>
+              TODO Add description for the pool that can be set by the pool owner.
+              The owner that sets the description should be verified from the backend 
+              with web3 signature.
+            </p>
             <p *ngFor="let field of poolFields; index as i;">
                 {{field}}: {{poolValues[i]}}</p>
         </mat-card-content>
