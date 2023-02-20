@@ -6,6 +6,8 @@
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    // TODO disble skipLibCheck when https://github.com/coinbase/coinbase-wallet-sdk/issues/343 is resolved (ethereum type check)
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
