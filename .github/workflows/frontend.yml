@@ -19,5 +19,7 @@ jobs:
       with:
         node-version: '12.x'
     - working-directory: simplepools-website-frontend
-      run: npm install
-    - run: npm run build --if-present
+      run: npm ci
+    - working-directory: simplepools-website-frontend
+      run: npm run build
+
