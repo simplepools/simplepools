@@ -19,6 +19,7 @@ jobs:
       with:
         node-version: '16.x'
         cache: 'npm'
+        cache-dependency-path: simplepools-website-frontend/package-lock.json
     - working-directory: simplepools-website-frontend
       run: npm install
     - working-directory: simplepools-website-frontend
@@ -38,5 +39,4 @@ jobs:
     - name: Build with Maven
       working-directory: simplepools-webapp
       run: mvnw clean install
-
-
+    - run: find simplepools-webapp/target
