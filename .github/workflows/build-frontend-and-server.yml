@@ -32,3 +32,10 @@ jobs:
     - name: Build with Maven in simplepools-webapp
       working-directory: simplepools-webapp
       run: mvn clean install spring-boot:repackage
+    - name: Upload webapp
+      uses: actions/upload-artifact@v3
+      with:
+        name: webapp
+        path: simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar
+    - name: List files
+      run: ls -alh simplepools-webapp/target
