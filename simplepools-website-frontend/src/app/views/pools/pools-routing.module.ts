@@ -45,14 +45,6 @@ const poolRoutes: Routes = [
       redirectTo: 'pools/' + defaultBlockchain,
       pathMatch: 'full',
     },
-    { 
-        path: '**', 
-        redirectTo: '/homepage',
-        pathMatch: 'full',
-        data: {
-            animation: 'homepage',
-        }
-    },
 ];
 
 @NgModule({

@@ -23,6 +23,7 @@ import {MatIconModule} from '@angular/material/icon'
 
 
 import { Web3Service } from './services/web3/web3.service';
+import { UnderDevelopmentComponent } from './views/under-development/under-development.component';
 
 export const routes: Routes = [
   { 
@@ -32,12 +33,17 @@ export const routes: Routes = [
       animation: 'homepage',
     }
   },
-  { path: '',   redirectTo: '/homepage', pathMatch: 'full' },
+  {
+    path: 'nfts',
+    component: UnderDevelopmentComponent,
+    data: { animation: 'pools' },
+  },
   {
     path: 'pools/:blockchain',
     loadChildren: () => import("./views/pools/pools.module").then(m => m.PoolsModule),
     data: { preload: true }
   },
+  { path: '',   redirectTo: '/homepage', pathMatch: 'full' },
   { 
     path: '**', 
     redirectTo: '/homepage',
@@ -60,6 +66,7 @@ export const routes: Routes = [
     MatTableModule,
     MatTabsModule,
     MatDialogModule,
+    RouterModule,
     MatIconModule,
     MatRippleModule,
     PoolsModule,
@@ -75,6 +82,7 @@ export const routes: Routes = [
     AppComponent,
     LoadingComponent,
     HomepageComponent,
+    UnderDevelopmentComponent,
   ],
   bootstrap: [ AppComponent ],
   providers: [

@@ -50,6 +50,6 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
     - name: Restart the server with new version of the webapp
-      run: ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "cd /home/webapp && chmod 755 startup.sh && ./startup.sh && exit"
+      run: ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "cd /home/webapp && chmod 755 startup-on-website.sh && ./startup-on-website.sh && exit"
     - name: Cleanup
       run: rm -rf ~/.ssh

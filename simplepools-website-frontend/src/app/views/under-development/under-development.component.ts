@@ -6,11 +6,11 @@ import { LoadingService } from "src/app/services/loading/loading.service";
 import { defaultBlockchain } from "../pools/pools-routing.module";
 
 @Component({
-  selector: 'homepage',
-  templateUrl: './homepage.component.html',
-  styleUrls: [ './homepage.component.css' ]
+  selector: 'under-development',
+  templateUrl: './under-development.component.html',
+  styleUrls: [ './under-development.component.sss' ]
 })
-export class HomepageComponent implements OnInit {
+export class UnderDevelopmentComponent implements OnInit {
 
     constructor(
         private router: Router,
@@ -22,11 +22,4 @@ export class HomepageComponent implements OnInit {
         this.loading.isLoading.next(false);
     }
 
-    showPools() {
-        this.router.navigate(['pools', defaultBlockchain]);
-    }
-
-    showNftMarketplace() {
-        this.router.navigate(['nfts']);
-    }
 }
