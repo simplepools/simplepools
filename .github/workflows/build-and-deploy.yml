@@ -1,0 +1,55 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+  workflow_dispatch:
+
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+        cache: 'npm'
+        cache-dependency-path: simplepools-website-frontend/package-lock.json
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'maven'
+    - name: npm install simplepools-website-frontend
+      working-directory: simplepools-website-frontend
+      run: |
+        npm install
+        npm run build
+    - name: Build with Maven in simplepools-webapp
+      working-directory: simplepools-webapp
+      run: mvn clean install spring-boot:repackage
+    - name: List files
+      run: ls -al simplepools-webapp/target
+    - name: copy webapp war to server
+      uses: appleboy/scp-action@master
+      with: 
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar"
+        target: "/home/tmp"
+    - name: install ssh keys
+      # check this thread to understand why its needed:
+      # https://stackoverflow.com/a/70447517
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
+    - name: restart server with new webapp
+      run: ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "cd /home/tmp && ls -al && exit"
+    - name: cleanup
+      run: rm -rf ~/.ssh
