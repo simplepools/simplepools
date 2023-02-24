@@ -40,7 +40,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar,startup.sh"
+        source: "simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar,startup-on-website.sh"
         target: "/home/webapp"
     - name: Install ssh keys
       # check this thread to understand why its needed:
