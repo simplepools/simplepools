@@ -8,7 +8,7 @@ import { defaultBlockchain } from "../pools/pools-routing.module";
 @Component({
   selector: 'under-development',
   templateUrl: './under-development.component.html',
-  styleUrls: [ './under-development.component.sss' ]
+  styleUrls: [ './under-development.component.scss' ]
 })
 export class UnderDevelopmentComponent implements OnInit {
 
