@@ -40,7 +40,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar"
+        source: "simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar,startup.sh"
         target: "/home/tmp"
     - name: install ssh keys
       # check this thread to understand why its needed:
@@ -50,6 +50,6 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
     - name: restart server with new webapp
-      run: ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "pkill java && rm /home/webapp-0.0.1-SNAPSHOT.jar && cp /home/tmp/simplepools-webapp/target/webapp-0.0.1-SNAPSHOT.jar /home/webapp-0.0.1-SNAPSHOT.jar && java -jar /home/webapp-0.0.1-SNAPSHOT.jar org.simplepools.webapp.WebappApplication > /home/logs.txt & exit"
+      run: ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "cd /home/tmp && chmod 755 startup.sh && ./startup.sh && exit"
     - name: cleanup
       run: rm -rf ~/.ssh
