@@ -2,3 +2,4 @@ database.db
 simplepools-webapp/database.db
 .fake
 simplepools-webapp/src/main/resources/static/
+tomcat

@@ -8,8 +8,7 @@ import { environment } from "src/environments/environment";
 import Web3 from "web3";
 import { LoadingService } from "../../../services/loading/loading.service";
 import * as ethers from "ethers"
-import { blockchain } from "../pools-routing.module";
-import { contractTax, Web3Service } from "src/app/services/web3/web3.service";
+import { CHAIN_HOLDER, CONTRACT_TAX_ETH, Web3Service } from "src/app/services/web3/web3.service";
 import importedAssetCode from  "./asset_code.json";
 import { Subject } from 'rxjs';
 
@@ -41,7 +40,7 @@ export class CreateAssetComponent implements OnInit {
     }
 
     back() {
-      this.router.navigate(['pools', blockchain]);
+      this.router.navigate(['pools', CHAIN_HOLDER[0]]);
     }
 
     reviewActive = false;

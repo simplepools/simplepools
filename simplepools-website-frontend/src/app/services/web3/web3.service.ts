@@ -3,7 +3,7 @@ import { Location } from "@angular/common";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Component, OnInit, ViewChild, AfterViewInit } from "@angular/core";
 import { __core_private_testing_placeholder__ } from "@angular/core/testing";
-import { ActivatedRoute, ChildrenOutletContexts, Route, Router, RouterOutlet } from "@angular/router";
+import { ActivatedRoute, ActivationEnd, ChildrenOutletContexts, NavigationEnd, Route, Router, RouterOutlet } from "@angular/router";
 import { ErrorService } from "src/app/services/error/error.service";
 import { environment } from "src/environments/environment";
 import Web3 from "web3";
@@ -19,41 +19,37 @@ import { fetchEnsName } from '@wagmi/core'
 import { signMessage } from '@wagmi/core'
 import { prepareWriteContract, writeContract, readContract, fetchBalance, getContract } from '@wagmi/core'
 
-import spabi from './spabi.json';
-import ierc20abi from './ierc20abi.json';
-import spbin from './spbin.json';
+import SIMPLE_POOLS_ABI from './spabi.json';
+import IERC20_ABI from './ierc20abi.json';
 
-// var wrapper = require('solc/wrapper');
-// var solc = wrapper(wrapper.Module);
+export const BLOCKCHAIN_PARAM_NAME = 'blockchain';
 
-
-export const contractTax = 0.001;
+export const CONTRACT_TAX_ETH = 0.001;
 
 // 1. Define constants
-const projectId = '0931fefaa37b434ee74d3f9f287bb2d8'; // simplepools walletconnect project id
-const chains = [mainnet, bsc, polygon, avalanche, fantom, optimism, gnosis, sepolia];
+const WALLET_CONNECT_PROJECT_ID = '0931fefaa37b434ee74d3f9f287bb2d8'; // simplepools walletconnect project id
+const CHAINS = [mainnet, bsc, polygon, /*avalanche,*/ /*fantom,*/ /*optimism, */gnosis, sepolia];
 
 // 2. Configure wagmi client
-const { provider } = configureChains(chains, [walletConnectProvider({ projectId })]);
-const wagmiClient = createClient({
-  autoConnect: true,
-  connectors: [...modalConnectors({ appName: 'web3Modal', chains })],
+const { provider } = configureChains(CHAINS, [walletConnectProvider({ projectId: WALLET_CONNECT_PROJECT_ID })]);
+const WAGMI_CLIENT = createClient({
+  autoConnect: false,
+  connectors: [...modalConnectors({ appName: 'web3Modal', chains: CHAINS })],
   provider
 });
 
-
-const simplePoolsContractAddress = '0x80004035cc793678290a7e879b77c6cba3730008';
+const SIMPLE_POOLS_CONTRACT_ADDRESS = '0x80004035cc793678290a7e879b77c6cba3730008';
   
 import { getAccount } from '@wagmi/core'
 import { ContractFactory, ethers, Signer } from "ethers";
 import { webworker } from "src/app/app.component";
-
+import { CookieService } from "ngx-cookie-service";
 
 // 3. Create ethereum and modal clients
-const ethereumClient = new EthereumClient(wagmiClient, chains);
-export const web3Modal = new Web3Modal(
+export const ETHEREUM_CLIENT = new EthereumClient(WAGMI_CLIENT, CHAINS);
+export const WEB3_MODAL = new Web3Modal(
   {
-    projectId,
+    projectId: WALLET_CONNECT_PROJECT_ID,
     // walletImages: {
     //   safe: 'https://pbs.twimg.com/profile_images/1566773491764023297/IvmCdGnM_400x400.jpg'
     // },
@@ -62,49 +58,161 @@ export const web3Modal = new Web3Modal(
     themeColor: "orange",
     themeBackground: "themeColor"
   },
-  ethereumClient
+  ETHEREUM_CLIENT
 );
 
+export const WEB3_MODAL_STATE_SUBJECT: Subject<any> = new Subject();
+
+WEB3_MODAL.subscribeModal((x) => {
+  WEB3_MODAL_STATE_SUBJECT.next(x);
+});
+
+export const CHAIN_CHANGED_SUBJECT = new Subject<any>();
+
+export const CHAINS_METADATA = [
+  {
+    name: 'Ethereum',
+    icon: 'ethereum.png',
+    scanIcon: 'etherscan.png',
+    scanUrl: 'https://etherscan.io/address/0x80004035cc793678290a7e879b77c6cba3730008',
+    paramName: 'eth',
+    chain: mainnet
+  },
+  {
+    name: 'BNB Smart Chain',
+    icon: 'bscchain.png',
+    scanIcon: 'bscscan.png',
+    scanUrl: 'https://bscscan.com/address/0x80004035cc793678290a7e879b77c6cba3730008',
+    paramName: 'bsc',
+    chain: bsc
+  },
+  {
+    name: 'Polygon',
+    icon: 'polygonscan.png',
+    scanIcon: 'polygonscan.png',
+    scanUrl: 'https://polygonscan.com/address/0x80004035cc793678290a7e879b77c6cba3730008',
+    paramName: 'polygon',
+    chain: polygon
+  },
+  // {
+  //   name: 'Avalanche',
+  //   icon: 'snowtrace.png',
+  //   scanIcon: 'snowtrace.png',
+  //   scanUrl: 'https://snowtrace.io/address/0x80004035cc793678290a7e879b77c6cba3730008',
+  //   paramName: 'avalanche',
+  //   chain: avalanche
+  // },
+  // {
+  //   name: 'BitTorrent Chain',
+  //   icon: 'bttcscan.png',
+  //   scanIcon: 'bttcscan.png',
+  //   scanUrl: 'https://bttcscan.com/address/0x80004035cc793678290a7e879b77c6cba3730008',
+  //   paramName: 'bttc',
+  // },
+  // {
+  //   name: 'Fantom',
+  //   icon: 'ftmscan.png',
+  //   scanIcon: 'ftmscan.png',
+  //   scanUrl: 'https://ftmscan.com/address/0x80004035cc793678290a7e879b77c6cba3730008',
+  //   paramName: 'fantom',
+  //   chain: fantom
+  // },
+  // {
+  //   name: 'Optimism',
+  //   icon: 'optimism.png',
+  //   scanIcon: 'optimism.png',
+  //   scanUrl: 'https://optimistic.etherscan.io/address/0x80004035cc793678290a7e879b77c6cba3730008',
+  //   paramName: 'optimism',
+  //   chain: optimism,
+  // },
+  {
+    name: 'Gnosis',
+    icon: 'gnosis.png',
+    scanIcon: 'gnosis.png',
+    scanUrl: 'https://gnosisscan.io/address/0x80004035cc793678290a7e879b77c6cba3730008',
+    paramName: 'gnosis',
+    chain: gnosis,
+  },
+  {
+    name: 'Sepolia',
+    icon: 'sepolia.png',
+    scanIcon: 'sepolia.png',
+    scanUrl: 'https://sepolia.etherscan.io/address/0x80004035cc793678290a7e879b77c6cba3730008',
+    paramName: 'sepolia',
+    chain: sepolia
+  },
+];
+
+export const CHAIN_HOLDER = [CHAINS_METADATA[0].paramName];
+
+CHAIN_CHANGED_SUBJECT.subscribe(chain => {
+  let chainIdx = 0;
+  for (let i = 0; i < CHAINS_METADATA.length; ++i) {
+    if (chain === CHAINS_METADATA[i].name || chain === CHAINS_METADATA[i].paramName 
+            || chain === CHAINS_METADATA[i].chain.id) {
+      chainIdx = i;
+      break;
+    }
+  }
+
+  // If connected switch 
+  WEB3_MODAL.setDefaultChain(CHAINS_METADATA[chainIdx].chain);
+  ETHEREUM_CLIENT.switchNetwork({ chainId: CHAINS_METADATA[chainIdx].chain.id })
+      .catch(error => {
+        console.error(error);
+        ETHEREUM_CLIENT.disconnect();
+  });
+});
+
+
+export let COOKIES_SERVICE: CookieService;
 
 @Injectable({
     providedIn: 'root',
 })
 export class Web3Service {
 
-    constructor(public loading: LoadingService) {
-        // this.signClientPromise = SignClient.init({
-        //     projectId: projectId,
-        //     // optional parameters
-        //     metadata: {
-        //       name: "Simple Pools",
-        //       description: "DeFi made simple",
-        //       url: "#",
-        //       icons: ["https://walletconnect.com/walletconnect-logo.png"],
-        //     },
-        // });
-        for (let connector of wagmiClient.connectors) {
-          let onAccountsChangedFunc = connector['onAccountsChanged'];
-          connector['onAccountsChanged'] = (accounts) => {
-            onAccountsChangedFunc(accounts);
-            console.log('accounts changed: ' + accounts);
-          };
-          let onChainChangedFunc = connector['onChainChanged'];
-          connector['onChainChanged'] = (chain) => {
-            onChainChangedFunc(chain);
-            console.log('chain changed: ' + chain);
-          };
-          // connector.on('chainChanged' as any, chain => {
-          //   console.log("Chain changed: " + chain);
-          // });
+    constructor(
+      public loading: LoadingService,
+      private localCookies: CookieService,
+      public router: Router
+    ) {
+      router.events.subscribe(e => {
+        if (e instanceof ActivationEnd) {
+            const blockchainParam = e.snapshot.paramMap.get(BLOCKCHAIN_PARAM_NAME) || CHAIN_HOLDER[0];
+            if (blockchainParam !== CHAIN_HOLDER[0]) {
+              CHAIN_HOLDER[0] = blockchainParam;
+              CHAIN_CHANGED_SUBJECT.next(blockchainParam);
+            }
         }
-        webworker.onmessage = (data) => {
-          this.onWebworkerMessage(this as any, data);
-        } 
+      });
+
+      COOKIES_SERVICE = localCookies;
+      let blockchain = COOKIES_SERVICE.get(BLOCKCHAIN_PARAM_NAME);
+      console.log('blockchain from cookies: ' + blockchain);
+      if (!blockchain) {
+        COOKIES_SERVICE.set(BLOCKCHAIN_PARAM_NAME, CHAIN_HOLDER[0]);
+      }
+      for (let connector of WAGMI_CLIENT.connectors) {
+        let onAccountsChangedFunc = connector['onAccountsChanged'];
+        connector['onAccountsChanged'] = (accounts) => {
+          onAccountsChangedFunc(accounts);
+          console.log('accounts changed: ' + accounts);
+        };
+        let onChainChangedFunc = connector['onChainChanged'];
+        connector['onChainChanged'] = (chain) => {
+          onChainChangedFunc(chain);
+          console.log('chain changed: ' + chain);
+          CHAIN_CHANGED_SUBJECT.next(Number.parseInt(''+chain, 16));
+        };
+      }
+      webworker.onmessage = (data) => {
+        this.onWebworkerMessage(this as any, data);
+      } 
     }
 
     async onWebworkerMessage(obj: any, data: any) {
       console.log(`page got message: ${data}`);
-            // console.log(solc);
       const compiled = JSON.parse(data.data.compilation);
 
       const contract = compiled.contracts['storage.sol'][data.data.contractName];
@@ -125,7 +233,7 @@ export class Web3Service {
     // TODO add listener when wallet is connected to re-get balance
 
     getAddress() {
-      console.log(wagmiClient);
+      console.log(WAGMI_CLIENT);
       return getAccount().address;
     }
 
@@ -138,7 +246,7 @@ export class Web3Service {
       } else {
         const data = await readContract({
           address: contractAddress,
-          abi: ierc20abi,
+          abi: IERC20_ABI,
           functionName: 'balanceOf',
           args: [this.getAddress()]
         });
@@ -152,9 +260,9 @@ export class Web3Service {
     ): Promise<boolean> {
       let approveConfig = await prepareWriteContract({
         address: assetContractAddress,
-        abi: ierc20abi,
+        abi: IERC20_ABI,
         functionName: 'increaseAllowance',
-        args: [simplePoolsContractAddress, ethers.utils.parseEther('999999999999999999')]
+        args: [SIMPLE_POOLS_CONTRACT_ADDRESS, ethers.utils.parseEther('999999999999999999')]
       });
       const data = await writeContract(approveConfig);
       console.log(data);
@@ -162,6 +270,20 @@ export class Web3Service {
       console.log(tmp);
       return true;
     } 
+
+    async isApproved(
+      assetContractAddress: any,
+      amountEth: string
+    ): Promise<boolean> {
+      let approvedAmount: any = await readContract({
+        address: assetContractAddress,
+        abi: IERC20_ABI,
+        functionName: 'allowance',
+        args: [this.getAddress(), SIMPLE_POOLS_CONTRACT_ADDRESS]
+      });
+      const amountRequired = ethers.utils.parseEther(amountEth);
+      return approvedAmount.gte(amountRequired);
+    }
 
     async createPool(
       asset1: string,
@@ -173,14 +295,20 @@ export class Web3Service {
       maxBuyAsset1PercentPerTransaction: number,
       isConstantPrice: boolean,
     ): Promise<string> {
+      if (!isAsset1Native) {
+        let isApproved = await this.isApproved(asset1, ''+asset1Amount);
+        if (!isApproved) {
+          return 'approveRequired';
+        }
+      }
       let a1amount = ethers.utils.parseEther(''+asset1Amount);
       let a2iaAmount = ethers.utils.parseEther(''+asset2InitiallyAskedAmount);
       let config: any;
-      const txValue = ethers.utils.parseEther('' + contractTax);
+      const txValue = ethers.utils.parseEther('' + CONTRACT_TAX_ETH);
       try {
         config = await prepareWriteContract({
-          address: simplePoolsContractAddress,
-          abi: spabi,
+          address: SIMPLE_POOLS_CONTRACT_ADDRESS,
+          abi: SIMPLE_POOLS_ABI,
           functionName: 'createPool',
           args: [
             this.getAddress(),
@@ -221,13 +349,13 @@ export class Web3Service {
       const sellValue = ethers.utils.parseEther(''+amount);
       const txValue = 
           isSellingNative 
-            ? ethers.utils.parseEther(''+(contractTax + amount))
-            : ethers.utils.parseEther(''+contractTax);
+            ? ethers.utils.parseEther(''+(CONTRACT_TAX_ETH + amount))
+            : ethers.utils.parseEther(''+CONTRACT_TAX_ETH);
       let config: any;
       try {
           config = await prepareWriteContract({
-            address: simplePoolsContractAddress,
-            abi: spabi,
+            address: SIMPLE_POOLS_CONTRACT_ADDRESS,
+            abi: SIMPLE_POOLS_ABI,
             functionName: 'exchangeAsset',
             args: [personExecuting, pid, isBuyingA1, sellValue, 0],
             overrides: {
@@ -257,20 +385,7 @@ export class Web3Service {
         source: data.assetCode,
         contractName: data.contractName,
       });
-      // console.log(solc);
-
-      // const sp = new ContractFactory(
-      //   spabi, spbin,        
-      //   (await fetchSigner() as Signer)
-      // );
-      // console.log(sp);
-      // const dep = await sp.deploy();
-      // console.log(dep);
-      // const res = await dep.deployed();
-      // console.log(res);
     }
-
-    // signClientPromise: Promise<SignClient>;
 
     async connect() {
         this.loading.isLoading.next(true);
@@ -279,54 +394,5 @@ export class Web3Service {
         });
         this.loading.isLoading.next(false);
         console.log("Signature: " + signature);
-        // const signClient = await this.signClientPromise;
-        // signClient.on("session_event", (event) => {
-        //     console.log('session event' + event);
-        //     // Handle session events, such as "chainChanged", "accountsChanged", etc.
-        //   });
-          
-        //   signClient.on("session_update", ( params ) => {
-        //     console.log('session event' + params);
-        //   });
-          
-        //   signClient.on("session_delete", (params) => {
-        //     console.log('session event' + params);
-        //     // Session was deleted -> reset the dapp state, clean up from user session, etc.
-        //   });
-        //   const { uri, approval } = await signClient.connect({
-        //     // Optionally: pass a known prior pairing (e.g. from `signClient.core.pairing.getPairings()`) to skip the `uri` step.
-            
-        //     // Provide the namespaces and chains (e.g. `eip155` for EVM-based chains) we want to use in this session.
-        //     requiredNamespaces: {
-        //       eip155: {
-        //         methods: [
-        //           "eth_sendTransaction",
-        //           "eth_signTransaction",
-        //           "eth_sign",
-        //           "personal_sign",
-        //           "eth_signTypedData",
-        //         ],
-        //         chains: ["eip155:1"],
-        //         events: ["chainChanged", "accountsChanged"],
-        //       },
-        //     },
-        //   });
-
-
-        // //   const session = await approval();
-        // //   console.log(session);
-        
-        // const result = await signClient.request({
-        //     topic: 'asdf',
-        //     chainId: "eip155:1",
-        //     request: {
-        //       method: "personal_sign",
-        //       params: [
-        //         "0x1d85568eEAbad713fBB5293B45ea066e552A90De",
-        //         "0x7468697320697320612074657374206d65737361676520746f206265207369676e6564",
-        //       ],
-        //     },
-        // });
-        // console.log(result);
     }
 }

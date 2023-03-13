@@ -1,5 +1,7 @@
 import { NgModule }             from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { CHAIN_HOLDER } from 'src/app/services/web3/web3.service';
+import { BlockchainResolverService } from './blockchain-resolver.service';
 import { CreateAssetComponent } from './create-asset/create-asset.component';
 import { CreatePoolComponent } from './create-pool/create-pool.component';
 import { PoolDetailsResolverService } from './pool-details-resolver.service';
@@ -8,14 +10,14 @@ import { PoolsListComponent } from './pools-list/pools-list.component';
 
 import { PoolsComponent } from './pools.component';
 
-export const defaultBlockchain = 'sepolia';
-export let blockchain = defaultBlockchain;
-
 const poolRoutes: Routes = [
     {
         path: 'pools/:blockchain',
         component: PoolsComponent,
         data: { animation: 'pools' },
+        resolve: {
+          blockchain: BlockchainResolverService,
+        },
         children: [
           {
             path: '',
@@ -42,7 +44,7 @@ const poolRoutes: Routes = [
     },
     {
       path: 'pools',
-      redirectTo: 'pools/' + defaultBlockchain,
+      redirectTo: 'pools/' + CHAIN_HOLDER[0],
       pathMatch: 'full',
     },
 ];

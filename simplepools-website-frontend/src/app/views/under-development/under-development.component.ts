@@ -3,7 +3,6 @@ import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { LoadingService } from "src/app/services/loading/loading.service";
-import { defaultBlockchain } from "../pools/pools-routing.module";
 
 @Component({
   selector: 'under-development',

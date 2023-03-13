@@ -1,32 +1,4 @@
 <div>
-  <span>TODO leave blockchain selector for read only but show the selected chain on top.
-  </span>
-  
-    <mat-form-field class="select-blockchain" appearance="fill">
-    <mat-label>Blockchain</mat-label>
-      <mat-select 
-        [(ngModel)]="selectedBlockchainIndex"
-        (selectionChange)="selectedBlockchainChanged(selectedBlockchainIndex)">
-        <mat-option *ngFor="let item of [].constructor(blockchains.length); let i = index"
-             [value]="i">
-           <span>
-                <img width="16px" [src]="'./assets/' + blockchains[i].icon">
-           </span>
-           {{ blockchains[i].name }}
-         </mat-option>
-     </mat-select>
-   </mat-form-field>
-           
-   <a [href]="blockchains[selectedBlockchainIndex].scanUrl"
-                     target="_blank" rel="noopener noreferrer">
-           <button
-                class="scan-button" mat-raised-button color="primary">
-              <img width="16px" [src]="'./assets/' + blockchains[selectedBlockchainIndex].scanIcon">
-        </button>
-    </a>        
-</div>
-
-<div>
   <button class="create-pool"
      mat-raised-button color="primary"
      routerLink="create-pool">

@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { LoadingService } from "src/app/services/loading/loading.service";
-import { defaultBlockchain } from "../pools/pools-routing.module";
+import { CHAIN_HOLDER } from "src/app/services/web3/web3.service";
 
 @Component({
   selector: 'homepage',
@@ -23,7 +23,7 @@ export class HomepageComponent implements OnInit {
     }
 
     showPools() {
-        this.router.navigate(['pools', defaultBlockchain]);
+        this.router.navigate(['pools', CHAIN_HOLDER[0]]);
     }
 
     showNftMarketplace() {
