@@ -11,4 +11,9 @@ For frontend development use `./start-with-proxy.bat` (on windows) to start watc
 In another terminal run the server with: `mvnw spring-boot:run` from `simplepools-webapp` folder.
 If you want to debug the Java server you can start with debug `org.simplepools.webapp.WebappApplication`.
 
+On the server where the app is ran, we must have folders: `/home/webapp` and `/home/webapp/logs` with
+write permissions for the USER (in security actions variables) in order for the autodeploy to work properly.
+Also you have to allow the USER to start server on ports < 1024:
+`sudo setcap CAP_NET_BIND_SERVICE=+eip /usr/lib/jvm/java-17-openjdk-arm64/bin/java`
+
 - https://simplepools.org
